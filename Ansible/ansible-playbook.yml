@@ -1,0 +1,49 @@
+- name: Apply Kubernetes Deployments and Services and Ingress
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Apply Deployments
+      community.kubernetes.k8s:
+        state: present
+        src: "{{ item }}"
+      loop: "{{ query('fileglob', 'deployments/*.yaml') }}"
+
+    - name: Apply Services
+      community.kubernetes.k8s:
+        state: present
+        src: "{{ item }}"
+      loop: "{{ query('fileglob', 'services/*.yaml') }}"
+
+    - name: Create Ingress
+      community.kubernetes.k8s:
+        state: present
+        definition:
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: ecomm-ingress
+            annotations:
+              nginx.ingress.kubernetes.io/ssl-redirect: "true"
+              nginx.ingress.kubernetes.io/use-regex: "true" 
+              nginx.ingress.kubernetes.io/rewrite-target: /$2
+          spec:
+            ingressClassName: nginx
+            rules:
+              - http:
+                  paths:
+                    - path: /identity(/|$)(.*)
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: identity-svc
+                          port:
+                            number: 80
+                    - path: /basket(/|$)(.*)
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: basket-svc
+                          port:
+                            number: 80
+

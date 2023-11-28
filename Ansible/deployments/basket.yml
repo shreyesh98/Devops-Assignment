@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basket-deploy
+spec:
+  minReadySeconds: 5
+  replicas: 3
+  selector:
+    matchLabels:
+      app: basket
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      name: basket-pod
+      labels:
+        app: basket
+        version: "1"
+    spec:
+      containers:
+        - name: basket
+          image: shreyeshswargam/basket-service:1
+          ports:
+            - containerPort: 80

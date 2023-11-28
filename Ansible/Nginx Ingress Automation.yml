@@ -1,0 +1,26 @@
+- name: Install Nginx Ingress Controller
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - block:
+        - name: Add Helm repository for Nginx Ingress
+          community.kubernetes.helm_repository:
+            name: ingress-nginx
+            repo_url: https://kubernetes.github.io/ingress-nginx
+        - name: Update Helm repositories
+          community.kubernetes.helm_repository:
+            name: ingress-nginx
+            state: present
+            update_repo: yes
+        - name: Install Nginx Ingress Controller using Helm
+          community.kubernetes.helm:
+            name: nginx-ingress
+            chart_ref: ingress-nginx/ingress-nginx
+            release_namespace: ingress-nginx
+            state: present
+            wait: yes
+            timeout: 300
+      rescue:
+        - name: Handle Installation Errors
+          debug:
+            msg: "There was an error while installing the Nginx Ingress Controller. Please check the logs or configuration."
